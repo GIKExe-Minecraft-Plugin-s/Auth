@@ -1,0 +1,9 @@
+name: Auth
+version: '${project.version}'
+main: ru.gikexe.auth.Auth
+api-version: '1.20'
+authors: [GIKExe]
+website: https://discord.com/invite/JVvhcysGdc
+commands:
+  auth:
+
