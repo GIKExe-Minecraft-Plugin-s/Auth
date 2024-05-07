@@ -1,27 +1,22 @@
 package ru.gikexe.auth;
 
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-
-import java.util.Collection;
 
 public class PlayerData {
 	Player player;
-	Location lastLocation;
-	Collection<PotionEffect> lastEffect;
-//	PlayerInventory lastInventory;
+	private final Location location;
+	private final GameMode gamemode;
 
 	public PlayerData(Player player) {
 		this.player = player;
-		lastLocation = player.getLocation();
-		lastEffect = player.getActivePotionEffects();
-//		lastInventory = player.getInventory();
+		location = player.getLocation();
+		gamemode = player.getGameMode();
 	}
 
 	public void back() {
-		player.clearActivePotionEffects();
-		player.addPotionEffects(lastEffect);
-		player.teleport(lastLocation);
+		player.teleport(location);
+		player.setGameMode(gamemode);
 	}
 }

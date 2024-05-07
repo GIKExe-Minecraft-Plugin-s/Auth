@@ -1,7 +1,6 @@
 package ru.gikexe.auth;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
-import io.papermc.paper.event.player.PlayerPickItemEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
@@ -11,26 +10,20 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
-import static org.bukkit.potion.PotionEffectType.*;
+import static org.bukkit.GameMode.SPECTATOR;
 import static ru.gikexe.auth.Data.login;
 import static ru.gikexe.auth.Data.pass;
 
 public class AuthListener implements Listener {
 
 	Map<String, PlayerData> playerDataMap = new HashMap<>();
-	Location loginLocation = new Location(Bukkit.getWorld("world"), 0, 100000, 0);
-	Collection<PotionEffect> loginEffect = List.of(
-		new PotionEffect(LEVITATION,        -1, 255, false, false),
-		new PotionEffect(DAMAGE_RESISTANCE, -1, 255, false, false),
-		new PotionEffect(INVISIBILITY,      -1, 255, false, false)
-	);
+	Location loginLocation = new Location(Bukkit.getWorld("world"), 0, 64, 0);
 
 	Component prefix = Auth.me.prefix;
 	List<Component> msg = new ArrayList<>(List.of(
@@ -74,8 +67,7 @@ public class AuthListener implements Listener {
 		player.sendMessage(msg.get(pass(player) == null ? 3 : 5));
 		event.joinMessage(null);
 		playerDataMap.put(player.getName(), new PlayerData(player));
-		player.clearActivePotionEffects();
-		player.addPotionEffects(loginEffect);
+		player.setGameMode(SPECTATOR);
 		player.teleport(loginLocation);
 	}
 
@@ -132,10 +124,6 @@ public class AuthListener implements Listener {
 
 	@EventHandler
 	public void on(PlayerCommandPreprocessEvent event) {_cansel(event, true);}
-	@EventHandler
-	public void on(PlayerDropItemEvent event) {_cansel(event, false);}
-	@EventHandler
-	public void on(PlayerPickItemEvent event) {_cansel(event, false);}
 	@EventHandler
 	public void on(PlayerInteractEvent event) {_cansel(event, false);}
 }
