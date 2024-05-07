@@ -19,6 +19,8 @@ import java.util.*;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 import static org.bukkit.potion.PotionEffectType.*;
+import static ru.gikexe.auth.Data.login;
+import static ru.gikexe.auth.Data.pass;
 
 public class AuthListener implements Listener {
 
@@ -30,7 +32,7 @@ public class AuthListener implements Listener {
 		new PotionEffect(INVISIBILITY,      -1, 255, false, false)
 	);
 
-	Component prefix = Component.text(" -> ", GRAY);
+	Component prefix = Auth.me.prefix;
 	List<Component> msg = new ArrayList<>(List.of(
 		prefix.append(Component.text("Подключился", YELLOW)),
 		prefix.append(Component.text("Вошёл", GREEN)),
@@ -47,10 +49,6 @@ public class AuthListener implements Listener {
 		prefix.append(Component.text("Войди", RED))
 			.append(Component.text(", чтобы использовать это", WHITE))
 	));
-
-	public AuthListener() {
-
-	}
 
 	public void setPerm(Player player, String key, Boolean value) {
 		player.addAttachment(Auth.me, key, value);
@@ -72,9 +70,8 @@ public class AuthListener implements Listener {
 	@EventHandler
 	public void on(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		Data data = new Data(player);
 		Bukkit.broadcast(Component.text(player.getName(), WHITE).append(msg.get(0)), "gikexe.auth");
-		player.sendMessage(msg.get(data.pass() == null ? 3 : 5));
+		player.sendMessage(msg.get(pass(player) == null ? 3 : 5));
 		event.joinMessage(null);
 		playerDataMap.put(player.getName(), new PlayerData(player));
 		player.clearActivePotionEffects();
@@ -94,36 +91,32 @@ public class AuthListener implements Listener {
 	@EventHandler
 	public void on(AsyncChatEvent event) {
 		Player player = event.getPlayer();
-		Data data = new Data(player);
 		String text = ((TextComponent) event.message()).content();
-		if (data.login()) return;
-		if (data.pass() == null) {
-			data.pass(text);
-			data.login(true);
+		if (login(player)) return;
+		if (pass(player) == null) {
+			pass(player, text);
+			login(player, true);
 			player.sendMessage(msg.get(4).append(Component.text(text, GREEN)));
 			Bukkit.broadcast(Component.text(player.getName(), WHITE).append(msg.get(1)), "gikexe.auth");
 			setPerm(player, "gikexe.auth", true);
 			back(player);
 
-		} else if (data.pass().equals(text)) {
-			data.login(true);
+		} else if (pass(player).equals(text)) {
+			login(player, true);
 			player.sendMessage(msg.get(6));
 			Bukkit.broadcast(Component.text(player.getName(), WHITE).append(msg.get(1)), "gikexe.auth");
 			setPerm(player, "gikexe.auth", true);
 			back(player);
 
-		} else {
-			player.sendMessage(msg.get(7));
-		}
+		} else player.sendMessage(msg.get(7));
 		event.setCancelled(true);
 	}
 
 	@EventHandler
 	public void on(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
-		Data data = new Data(player);
-		if (!data.login()) playerDataMap.remove(player.getName()).back();
-		data.login(false);
+		if (!login(player)) playerDataMap.remove(player.getName()).back();
+		login(player, false);
 		setPerm(player, "gikexe.auth", false);
 		Bukkit.broadcast(Component.text(player.getName(), WHITE).append(msg.get(2)), "gikexe.auth");
 		event.quitMessage(null);
@@ -132,8 +125,7 @@ public class AuthListener implements Listener {
 	//CANSEL NON LOGIN
 	private void _cansel(PlayerEvent event, boolean send) {
 		Player player = event.getPlayer();
-		Data data = new Data(player);
-		if (data.login()) return;
+		if (login(player)) return;
 		if (send) player.sendMessage(msg.get(8));
 		((Cancellable) event).setCancelled(true);
 	}

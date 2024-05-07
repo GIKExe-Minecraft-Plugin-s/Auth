@@ -9,12 +9,14 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static ru.gikexe.auth.Data.login;
 
 public final class Auth extends JavaPlugin {
 	static Auth me;
 	public Server server;
 	public PluginManager manager;
 
+	Component prefix = Component.text(" -> ", GRAY);
 	AuthListener listener;
 	AuthExecutor executor;
 
@@ -26,10 +28,7 @@ public final class Auth extends JavaPlugin {
 		manager = server.getPluginManager();
 
 		players = new Config(this, "players.yml");
-		for (Player player : server.getOnlinePlayers()) {
-			Data data = new Data(player);
-			data.login(true);
-		}
+		for (Player player : server.getOnlinePlayers()) login(player, true);
 
 		listener = new AuthListener();
 		manager.registerEvents(listener, this);
@@ -44,14 +43,15 @@ public final class Auth extends JavaPlugin {
 
 	public void onDisable() {
 		for (String name : players.keySet()) {
-			Data data = new Data(name);
-			if (!data.login()) {
+			if (!login(name)) {
 				Player player = server.getPlayer(name);
 				if (player == null) continue;
-				listener.playerDataMap.remove(player.getName()).back();
-				player.kick(Component.text("не вошедшие покидают сервер при перезагрузке", RED), PlayerKickEvent.Cause.RESTART_COMMAND);
+				listener.playerDataMap.remove(name).back();
+				player.kick(
+					Component.text("не вошедшие покидают сервер при перезагрузке", RED),
+					PlayerKickEvent.Cause.RESTART_COMMAND);
 			}
-			data.login(false);
+			login(name, false);
 		}
 		players.save();
 	}
